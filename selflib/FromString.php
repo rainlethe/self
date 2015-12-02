@@ -70,13 +70,7 @@ class FromString{
 		}
 
 		return $this;
-	}
-
-	/** fromString 반환. 문자열을 출력합니다. echo 의 별칭입니다. */
-	function out(){
-		echo $this->__invar;
-		return $this;
-	}
+	}	
 
 	/** fromString 반환. htmlentities 의 별칭입니다. 
 	html 인코딩된 문자열을 디코딩합니다. 
@@ -99,6 +93,12 @@ class FromString{
 	/** fromString 반환. html_entity_decode 의 별칭입니다. html 디코딩된 문자열을 인코딩합니다. 예를 들면 &nbsp; 는 ' ' 공백으로 변경됩니다. */	
 	function htmlDecode($quote_style = ENT_COMPAT, $charset="UTF-8"){
 		$this->__invar = html_entity_decode($this->__invar, $quote_style, $charset);
+		return $this;
+	}
+
+	/** fromString 반환. 문자열을 출력합니다. echo 의 별칭입니다. */
+	function out(){
+		echo $this->__invar;
 		return $this;
 	}
 
