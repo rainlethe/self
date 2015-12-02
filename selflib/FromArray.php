@@ -16,8 +16,6 @@ class FromArray{
 		return $this;		
 	}
 
-
-
 	/** fromArray 반환.. 여러 객체를 한번에 출력하고 싶을 때 사용합니다. */	
 	public  function out(){
 		$args = $this->__invar();		
@@ -30,8 +28,6 @@ class FromArray{
 	}
 
 	
-
-
 }
 
 ?>

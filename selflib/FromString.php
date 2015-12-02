@@ -2,7 +2,22 @@
 class FromString{
 	public $__invar = "";
 	public function __construct($var){
-		$this->__invar = $var;
+		$this->__invar = $this->fromStringToString($var);
+	}
+
+	/* obj가 string 이면 그대로 반환. fromString 의 인스턴스이면 string 으로 바꿔서  반환합니다. */
+
+	public function fromStringToString($obj){
+		if (get_class($obj) === 'FromString'){
+			return $obj->toString();
+		}
+
+		try{
+			$ret = (string)	$obj;
+			return $ret;
+		}catch(Exception $ex){
+			throw new Exception($ex);
+		}
 	}
 
 	/** string 반환.  fromString 개체를 string 으로 변경합니다. */
@@ -60,6 +75,30 @@ class FromString{
 	/** fromString 반환. 문자열을 출력합니다. echo 의 별칭입니다. */
 	function out(){
 		echo $this->__invar;
+		return $this;
+	}
+
+	/** fromString 반환. htmlentities 의 별칭입니다. 
+	html 인코딩된 문자열을 디코딩합니다. 
+	예를들면 ' ' 공백은 &nbsp; 로 변경됩니다. 
+	htmlEncodeSpecial과는 다르게 모든 html에 대해 작동합니다. */		
+	function htmlEncode($quote_style = ENT_COMPAT, $charset="UTF-8", $double_encode=true){		
+		$this->__invar = htmlentities($this->__invar, $quote_style, $charset, $double_encode);
+		return $this;
+	}
+
+	/** fromString 반환. htmlspecialchars 의 별칭입니다. 
+	html 인코딩된 문자열을 디코딩합니다. 
+	예를들면 ' ' 공백은 &nbsp; 로 변경됩니다. 
+	htmlEncode와의 차이는 htmlEncodeSpecial 은 &, <, >, ', " 에 대해서만 작동합니다.*/		
+	function htmlEncodeSpecial($quote_style = ENT_COMPAT, $charset="UTF-8", $double_encode=true){
+		$this->__invar = htmlentities($this->__invar, $quote_style, $charset, $double_encode);
+		return $this;
+	}
+
+	/** fromString 반환. html_entity_decode 의 별칭입니다. html 디코딩된 문자열을 인코딩합니다. 예를 들면 &nbsp; 는 ' ' 공백으로 변경됩니다. */	
+	function htmlDecode($quote_style = ENT_COMPAT, $charset="UTF-8"){
+		$this->__invar = html_entity_decode($this->__invar, $quote_style, $charset);
 		return $this;
 	}
 

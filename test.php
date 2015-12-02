@@ -1,5 +1,10 @@
 <?php
 include_once('self.php');
-$len = $self->fromString("한글 테스트 ABCDEF")->out()->length();
-var_dump($len);
+$decode = $self->fromString("I'll &quot;walk&quot; the &lt;b&gt;dog&lt;/b&gt; now")->htmlDecode();
+$encode = $self->fromString($decode)->htmlEncode();
+
+// $decode = $self->fromString($decode);
+$decode->out();
+$encode->out();
+
 ?>
