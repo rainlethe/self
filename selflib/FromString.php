@@ -8,6 +8,10 @@ class FromString{
 	/* obj가 string 이면 그대로 반환. fromString 의 인스턴스이면 string 으로 바꿔서  반환합니다. */
 
 	public function fromStringToString($obj){
+		if (is_string($obj)){
+			return $obj;
+		}
+
 		if (get_class($obj) === 'FromString'){
 			return $obj->toString();
 		}
@@ -90,11 +94,44 @@ class FromString{
 		return $this;
 	}
 
-	/** fromString 반환. html_entity_decode 의 별칭입니다. html 디코딩된 문자열을 인코딩합니다. 예를 들면 &nbsp; 는 ' ' 공백으로 변경됩니다. */	
+	/** fromString 반환. 
+	html_entity_decode 의 별칭입니다. 
+	html 디코딩된 문자열을 인코딩합니다. 
+	예를 들면 &nbsp; 는 ' ' 공백으로 변경됩니다. */	
 	function htmlDecode($quote_style = ENT_COMPAT, $charset="UTF-8"){
 		$this->__invar = html_entity_decode($this->__invar, $quote_style, $charset);
 		return $this;
 	}
+
+	/** fromString 반환
+	ucfirst, strtoupper 의 별칭입니다. 	
+	$isallupper 가 true이면  믄자열 전체를 대문자로 변경합니다. 
+	$isallupper 가 false  믄자열의 첫번째만 대문자로 변경합니다. 
+	*/
+	function upper($isallupper=true, $charset='UTF-8'){
+		if ($isallupper){			
+			$this->__invar = mb_strtoupper($this->__invar, $charset);
+		}else{
+			$this->__invar = mb_strtoupper(mb_substr($this->__invar, 0,1), $charset) . mb_strtoupper(mb_substr($this->__invar, 1), $charset);
+		}
+		return $this;
+	}
+
+	/** fromString 반환
+	lcfirst, strtolower 의 별칭입니다. 
+	$isalllower 가 true이면  믄자열 전체를 소문자로 변경합니다. 
+	$isalllower 가 false  믄자열의 첫번째만 소문자로 변경합니다. 
+	*/
+	function lower($isalllower=true, $charset='UTF-8'){
+		if ($isalllower){			
+			$this->__invar = mb_strtolower($this->__invar, $charset);			
+		}else{
+			$this->__invar = mb_strtolower(mb_substr($this->__invar, 0,1), $charset) . mb_strtolower(mb_substr($this->__invar, 1), $charset);
+		}
+		return $this;
+	}
+
+	
 
 	/** fromString 반환. 문자열을 출력합니다. echo 의 별칭입니다. */
 	function out(){

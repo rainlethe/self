@@ -13,7 +13,7 @@ class FromArray{
 			array_push($this->__invar, $arg);	
 		}
 
-		return $this;		
+		return $this;
 	}
 
 	/** fromString 반환. 배열을 $glue로 이어붙입니다. fromArray(array(1,2,3,4))->join() 은 1234. fromArray(array(1,2,3,4))->join(',') => 1,2,3,4 가 출력됩니다. */
@@ -24,13 +24,8 @@ class FromArray{
 
 	/** fromArray 반환.. 여러 객체를 한번에 출력하고 싶을 때 사용합니다. */	
 	public  function out(){
-		$args = $this->__invar();		
-		foreach($args as $arg){
-			echo $arg;
-			echo " ";
-		}
-
-		return $this->__invar;
+		echo $this->join($this->__invar());
+		return $this;
 	}
 
 
