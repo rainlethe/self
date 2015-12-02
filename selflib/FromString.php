@@ -131,13 +131,67 @@ class FromString{
 		return $this;
 	}
 
-	
+	/** fromString 반환.
+	ltrim 의 별칭입니다.
+	*/
+	function ltrim(){
+		$this->__invar = ltrim($this->__invar);
+		return $this;
+	}
+
+	/** fromString 반환.
+	rtrim 의 별칭입니다.
+	*/
+	function rtrim(){
+		$this->__invar = rtrim($this->__invar);
+		return $this;
+	}
+
+	/** fromString 반환.
+	rtrim 의 별칭입니다.
+	*/
+	function trim(){
+		$this->__invar = trim($this->__invar);
+		return $this;
+	}
+
+	/* fromString 반환.md5 로 변환합니다. */
+	function md5($raw_output=false){
+		$this->__invar = md5($this->__invar, $raw_output);
+		return $this;	
+	}
+
+	/** fromString 반환. nl2br의 별칭입니다. [\r | \n | \r\n] 을 [\r <br /> | \n <br /> | \r\n <br />] 로 변경합니다. */
+	function nl2br($is_xhtml=false, $is_remove_nl = false){
+		$this->__invar = nl2br($this->__invar, $is_xhtml);
+		if ($is_remove_nl){
+			$this->replace("\r","")->replace("\n","");
+		}
+
+		return $this;
+	}
+
+	function replace($oldstring, $newstring){
+		$this->__invar = str_replace($oldstring, $newstring, $this->__invar);
+		return $this;
+	}
+
+
+	/** fromString 반환. $wrapLeft와 $wrapRight로 감쌉니다. */
+	function wrap($wrapLeft="[", $wrapRight="]"){
+		$this->__invar = "[" . $this->__invar . "]";
+		return $this;
+	}
+
 
 	/** fromString 반환. 문자열을 출력합니다. echo 의 별칭입니다. */
 	function out(){
 		echo $this->__invar;
 		return $this;
 	}
+
+	
+
 
 }
 
