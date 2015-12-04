@@ -162,7 +162,7 @@ class FromString{
 	}
 
 	/** fromString 반환. nl2br의 별칭입니다. [\r | \n | \r\n] 을 [\r <br /> | \n <br /> | \r\n <br />] 로 변경합니다. */
-	function nl2br($is_xhtml=false, $is_remove_nl = false){
+	function newLineToBR($is_xhtml=false, $is_remove_nl = false){
 		$this->__invar = nl2br($this->__invar, $is_xhtml);
 		if ($is_remove_nl){
 			$this->replace("\r","")->replace("\n","");
@@ -171,9 +171,29 @@ class FromString{
 		return $this;
 	}
 
+	/** fromString 반환. str_replace의 별칭입니다.  */
 	function replace($oldstring, $newstring){
 		$this->__invar = str_replace($oldstring, $newstring, $this->__invar);
 		return $this;
+	}
+
+	/** fromString 반환. str_shuffle과 같은 기능을 하지만 유니코드 확장을 위해서 구현은 다릅니다. 
+	소스코드는 http://php.net/manual/en/function.str-shuffle.php#107656 를 참조했습니다.
+	*/
+	function shuffle(){	
+		$tmp = preg_split("//u", $this->__invar, -1, PREG_SPLIT_NO_EMPTY);
+	    shuffle($tmp);
+	    $this->__invar = join("", $tmp);			
+		//$this->__invar = str_shuffle($this->__invar);		
+		return $this;
+	}
+
+	/** fromArray 반환.  str_split 의 별칭입니다. 각 문자열을 분해합니다. 
+	$split_length 가 입력되면 하나의 블럭당 $split_length 만큼의 글자가 할당됩니다.
+	  */
+	function toCharArray($split_length = 1){
+		$ret = str_split($this->__invar, $split_length);
+		return $this->self->fromArray($ret);
 	}
 
 
@@ -189,10 +209,6 @@ class FromString{
 		echo $this->__invar;
 		return $this;
 	}
-
-	
-
-
 }
 
 ?>
