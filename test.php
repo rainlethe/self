@@ -1,6 +1,8 @@
 <?php
 include_once('self.php');
 
+
+
 // $self->fromString("a b c 가 나 다 ")->toCharArray()->out();
 // $self->fromNumber(1234.56)->numberFormat()->out();
 // $self->fromString("first=value&arr[]=foo+bar&arr[]=baz")->urlToArray()->out();

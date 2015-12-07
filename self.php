@@ -1,4 +1,12 @@
 <?php
+set_error_handler("warning_handler", E_WARNING);
+function warning_handler($errno, $errstr) { 	
+	global $self;	
+	if ($self->fromString($errstr)->startswith('get_class() expects parameter 1 to be object') == false){
+		echo $errstr;
+	}
+}
+
 class SelfCls{
 	private $selfConfig = null;
 	private $membervars = null;
@@ -36,9 +44,12 @@ class SelfCls{
 		foreach($this->selfConfig as $key=>$val){
 			$typechecker = $val['typechecker'];
 			foreach($typechecker as $funcname=>$equalval){
-				if (call_user_func($funcname, $mixvar) === $equalval){
-					
-					return $this->bindCall($key, array($mixvar));
+				try{
+					if (call_user_func($funcname, $mixvar) === $equalval){					
+						return $this->bindCall($key, array($mixvar));
+					}
+				}catch(Exception $ex){
+
 				}
 			}
 		}
@@ -48,5 +59,7 @@ class SelfCls{
 }
 
 $self = new SelfCls();
+
+
 
 ?>
