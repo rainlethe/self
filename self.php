@@ -9,10 +9,12 @@ class SelfCls{
 		$this->membervars = array();
 	}
 
-	public function __call($method, $args){		
-		if (isset($this->selfConfig[$method])){						
-			include_once($this->selfConfig[$method]);
-				$justclsname = explode('/', $this->selfConfig[$method]);
+	public function bindCall($method, $args){		
+		if (isset($this->selfConfig[$method])){
+			$src = 	$this->selfConfig[$method];
+			$src = $src['src'];
+			include_once($src);
+				$justclsname = explode('/', $src);
 				$justclsname = $justclsname[count($justclsname) - 1];
 				$justclsname = str_replace('.php','', $justclsname);
 				
@@ -24,6 +26,24 @@ class SelfCls{
 		}else{ // config 에 정의 안되어 있음.
 			throw new Exception('Non selfconfig settings Class.');
 		}
+	}
+
+	public function __call($method, $args){
+		return $this->bindCall($method, $args);
+	}
+
+	public function from($mixvar){
+		foreach($this->selfConfig as $key=>$val){
+			$typechecker = $val['typechecker'];
+			foreach($typechecker as $funcname=>$equalval){
+				if (call_user_func($funcname, $mixvar) === $equalval){
+					
+					return $this->bindCall($key, array($mixvar));
+				}
+			}
+		}
+
+		throw new Exception('cannot from any type of settings.');
 	}
 }
 

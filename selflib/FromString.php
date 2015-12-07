@@ -46,6 +46,19 @@ class FromString{
 		return $needle === "" || substr($this->__invar, -strlen($needle)) === $needle;
 	}
 
+	/* sprintf */
+	function format(){
+		$args = func_get_args();
+		array_unshift($args, $this->__invar);		
+		$this->__invar = call_user_func_array("sprintf", $args);
+		return $this;
+	}
+
+	function formatScan($format){
+		$ret = sscanf($this->__invar, $format);
+		return $this->self->fromArray($ret);
+	}
+
 	/** fromString 반환. htmlentities 의 별칭입니다. 
 	html 인코딩된 문자열을 디코딩합니다. 
 	예를들면 ' ' 공백은 &nbsp; 로 변경됩니다. 
@@ -117,8 +130,13 @@ class FromString{
 	}
 
 	/** fromString 반환. str_replace의 별칭입니다.  */
-	function replace($oldstring, $newstring){
-		$this->__invar = str_replace($oldstring, $newstring, $this->__invar);
+	function replace($oldstring, $newstring, $ignoreCase=false){
+		if ($ignoreCase){
+			$this->__invar = str_ireplace($oldstring, $newstring, $this->__invar);
+		}else{
+			$this->__invar = str_replace($oldstring, $newstring, $this->__invar);			
+		}
+		
 		return $this;
 	}
 
@@ -128,6 +146,14 @@ class FromString{
 	*/
 	function rtrim(){
 		$this->__invar = rtrim($this->__invar);
+		return $this;
+	}
+
+	
+
+	/* sha1 */
+	function sha1($raw_output=false){
+		$this->__invar = sha1($this->__invar, $raw_output);
 		return $this;
 	}
 
@@ -195,6 +221,12 @@ class FromString{
 			$this->__invar = mb_strtoupper(mb_substr($this->__invar, 0,1), $charset) . mb_strtoupper(mb_substr($this->__invar, 1), $charset);
 		}
 		return $this;
+	}
+
+	/* parse_str()  */
+	function urlToArray(){
+		parse_str($this->__invar, $output);		
+		return $this->self->fromArray($output);
 	}
 
 
