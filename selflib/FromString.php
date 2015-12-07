@@ -26,7 +26,7 @@ class FromString{
 	/** boolean 반환. 문자열이 $needle 을 포함하는 지 검사합니다. */
 	function contains($needle)
 	{
-		return strrpos($this->__invar, $needle) !== false;		
+		return mb_strrpos($this->__invar, $needle) !== false;		
 	}
 
 	/** fromString 반환. 문자열을 단방향으로 암호화합니다. $salt 는 암호화에 쓰이는 키입니다. */
@@ -43,7 +43,42 @@ class FromString{
 	/** boolean 반환. 문자열이 $needle 로 끝나는 지 검사합니다. */
 	function endsWith($needle)
 	{
-		return $needle === "" || substr($this->__invar, -strlen($needle)) === $needle;
+		return $needle === "" || mb_substr($this->__invar, -mb_strlen($needle)) === $needle;
+	}
+
+	function equalsValue($obj){
+		if (is_string($obj)){
+			return $this->__invar == $obj;
+		}else if (get_class($obj) == "FromString"){
+			return $this->__invar == $obj->toString();
+		}
+		return false;
+	}
+
+	function equalsValueAndType($obj){		
+		if (get_class($obj) === "FromString"){
+			return $this->__invar === $obj->toString();
+		}
+		return false;
+	}
+
+	// mb_strstr, mb_stristr, mb_strrichr, mb_strrchr
+	function find($needle, $ignoreCase=false, $reverse=false){
+		if ($ignoreCase){
+			if ($reverse){				
+				$this->__invar = mb_strrichr($this->__invar, $needle);	
+			}else{
+				$this->__invar = mb_stristr($this->__invar, $needle);
+			}
+			
+		}else{				
+			if ($reverse){
+				$this->__invar = mb_strrchr($this->__invar, $needle);	
+			}else{
+				$this->__invar = mb_strstr($this->__invar, $needle);
+			}
+		}
+		return $this;
 	}
 
 	/* sprintf */
@@ -57,6 +92,15 @@ class FromString{
 	function formatScan($format){
 		$ret = sscanf($this->__invar, $format);
 		return $this->self->fromArray($ret);
+	}
+
+	/** fromString 반환. 
+	html_entity_decode 의 별칭입니다. 
+	html 디코딩된 문자열을 인코딩합니다. 
+	예를 들면 &nbsp; 는 ' ' 공백으로 변경됩니다. */	
+	function htmlDecode($quote_style = ENT_COMPAT, $charset="UTF-8"){
+		$this->__invar = html_entity_decode($this->__invar, $quote_style, $charset);
+		return $this;
 	}
 
 	/** fromString 반환. htmlentities 의 별칭입니다. 
@@ -76,15 +120,36 @@ class FromString{
 		$this->__invar = htmlentities($this->__invar, $quote_style, $charset, $double_encode);
 		return $this;
 	}
-
-	/** fromString 반환. 
-	html_entity_decode 의 별칭입니다. 
-	html 디코딩된 문자열을 인코딩합니다. 
-	예를 들면 &nbsp; 는 ' ' 공백으로 변경됩니다. */	
-	function htmlDecode($quote_style = ENT_COMPAT, $charset="UTF-8"){
-		$this->__invar = html_entity_decode($this->__invar, $quote_style, $charset);
+	/* strip_tags */
+	function htmlStrip($allowable_tags = ''){
+		$this->__invar = strip_tags($this->__invar, $allowable_tags);
 		return $this;
 	}
+
+	/* mb_strpos, mb_stripos */
+	function indexOf($needle, $ignoreCase = false){
+		$ret = 0;
+		if ($ignoreCase){			
+			$ret = $this->__invar = mb_stripos($this->__invar, $needle);
+		}else{
+			$ret = $this->__invar = mb_strpos($this->__invar, $needle);
+		}
+
+		return $this->self->from($ret);
+	}
+
+	function lastIndexOf($needle, $ignoreCase = false){
+		$ret = 0;
+		if ($ignoreCase){						
+			$ret = $this->__invar = mb_strripos($this->__invar, $needle);
+		}else{
+			$ret = $this->__invar = mb_strrpos($this->__invar, $needle);
+		}
+
+		return $this->self->from($ret);
+
+	}
+	
 
 	/** int 반환. 문자열의 길이를 셉니다. $charset 이 지정되지 않으면 기본값은 UTF-8 입니다. */
 	function length($charset='UTF-8'){
@@ -129,6 +194,29 @@ class FromString{
 		return $this;
 	}
 
+	/*str_pad */
+	function padLeft($total_string_length, $pad_string = ' '){
+		$this->__invar = str_pad($this->__invar, $total_string_length, $pad_string, STR_PAD_LEFT);		
+		return $this;
+	}
+
+	/*str_pad */
+	function padRight($total_string_length, $pad_string = ' '){
+		$this->__invar = str_pad($this->__invar, $total_string_length, $pad_string, STR_PAD_RIGHT);
+		return $this;
+	}
+
+	/*str_pad */
+	function padBoth($total_string_length, $pad_string = ' '){
+		$this->__invar = str_pad($this->__invar, $total_string_length, $pad_string, STR_PAD_BOTH);
+		return $this;
+	}
+
+	function repeat($iterator_count){
+		$this->__invar = str_repeat($this->__invar, $iterator_count);
+		return $this;
+	}
+
 	/** fromString 반환. str_replace의 별칭입니다.  */
 	function replace($oldstring, $newstring, $ignoreCase=false){
 		if ($ignoreCase){
@@ -137,6 +225,13 @@ class FromString{
 			$this->__invar = str_replace($oldstring, $newstring, $this->__invar);			
 		}
 		
+		return $this;
+	}
+
+	/* http://stackoverflow.com/questions/434250/how-to-reverse-a-unicode-string */
+	function reverse(){		 
+		preg_match_all('/./us', $this->__invar, $ar);
+ 		$this->__invar = implode(array_reverse($ar[0]));
 		return $this;
 	}
 
@@ -183,8 +278,19 @@ class FromString{
 	/** boolean 반환. 문자열이 $needle 로 시작하는 지 검사합니다. */
 	public function startsWith($needle)
 	{
-		return $needle === "" || strpos($this->__invar, $needle) === 0;		
+		return $needle === "" || mb_strpos($this->__invar, $needle) === 0;		
 	}	
+
+	
+
+	/* substr */
+	function subString($start_index, $length = null){
+		if ($length == null){
+			$this->__invar = mb_substr($this->__invar, $start_index);
+		}else{
+			$this->__invar = mb_substr($this->__invar, $start_index, $length);
+		}
+	}
 
 	/** fromArray 반환.  str_split 의 별칭입니다. 각 문자열을 분해합니다. 
 	$split_length 가 입력되면 하나의 블럭당 $split_length 만큼의 글자가 할당됩니다.

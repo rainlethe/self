@@ -15,6 +15,18 @@ include_once('self.php');
 
 //$self->fromString("aBCdAa")->replace('a',1)->out();
 //$self->fromString("aBCdAa")->replace('a',1,false)->out();
-$self->from("aBCdAa")->replace('a',1,false)->out();
+// $self->from("aBCdAa")->replace('a',1,false)->out();
+// $self->from("aBCdAa")->padLeft(30,"zzz")->out();
+// $self->from("=-")->repeat(10)->out();
+
+// var_dump($self->from("asdf")->equalsValue("asdf"));
+// var_dump($self->from("asdf")->equalsValue("asdfg"));
+// var_dump($self->from("asdf")->equalsValueAndType("asdf"));
+// var_dump($self->from("asdf")->equalsValueAndType($self->from("asdf")));
+
+// $self->from('<p>테스트 문단.</p><!-- 주석 --> <a href="#fragment">다른 텍스트</a>')->htmlStrip()->out();
+//$self->from('<p>테스트 문단.</p><!-- 주석 --> <a href="#fragment">다른 텍스트</a>')->htmlStrip("<p>")->out();
+
+$self->from("a나bc가 d")->reverse()->out();
 
 ?>
