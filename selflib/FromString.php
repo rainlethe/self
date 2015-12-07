@@ -6,7 +6,6 @@ class FromString{
 	}
 
 	/* obj가 string 이면 그대로 반환. fromString 의 인스턴스이면 string 으로 바꿔서  반환합니다. */
-
 	public function fromStringToString($obj){
 		if (is_string($obj)){
 			return $obj;
@@ -24,45 +23,10 @@ class FromString{
 		}
 	}
 
-	/** string 반환.  fromString 개체를 string 으로 변경합니다. */
-	public function toString(){
-		return $this->__invar;
-	}
-
-	/** fromArray 반환. 문자열을 $delimiter로 나눌 때 사용합니다. */
-	public function split($delimiter, $limit=null){
-		$splitresult = null;
-		if ($limit == null){
-			$splitresult = explode($delimiter, $this->__invar);			
-		}else{
-			$splitresult = explode($delimiter, $this->__invar, $limit);			
-		}
-
-		return $this->self->fromArray($splitresult);
-	}
-
-	/** boolean 반환. 문자열이 $needle 로 시작하는 지 검사합니다. */
-	public function startsWith($needle)
-	{
-		return $needle === "" || strpos($this->__invar, $needle) === 0;
-		
-	}
-
-	/** boolean 반환. 문자열이 $needle 로 끝나는 지 검사합니다. */
-	function endsWith($needle)
-	{
-		return $needle === "" || substr($this->__invar, -strlen($needle)) === $needle;
-	}
-
 	/** boolean 반환. 문자열이 $needle 을 포함하는 지 검사합니다. */
 	function contains($needle)
 	{
 		return strrpos($this->__invar, $needle) !== false;		
-	}
-
-	/** int 반환. 문자열의 길이를 셉니다. $charset 이 지정되지 않으면 기본값은 UTF-8 입니다. */
-	function length($charset='UTF-8'){
-		return  mb_strlen($this->__invar, $charset);		
 	}
 
 	/** fromString 반환. 문자열을 단방향으로 암호화합니다. $salt 는 암호화에 쓰이는 키입니다. */
@@ -74,7 +38,13 @@ class FromString{
 		}
 
 		return $this;
-	}	
+	}
+
+	/** boolean 반환. 문자열이 $needle 로 끝나는 지 검사합니다. */
+	function endsWith($needle)
+	{
+		return $needle === "" || substr($this->__invar, -strlen($needle)) === $needle;
+	}
 
 	/** fromString 반환. htmlentities 의 별칭입니다. 
 	html 인코딩된 문자열을 디코딩합니다. 
@@ -103,18 +73,9 @@ class FromString{
 		return $this;
 	}
 
-	/** fromString 반환
-	ucfirst, strtoupper 의 별칭입니다. 	
-	$isallupper 가 true이면  믄자열 전체를 대문자로 변경합니다. 
-	$isallupper 가 false  믄자열의 첫번째만 대문자로 변경합니다. 
-	*/
-	function upper($isallupper=true, $charset='UTF-8'){
-		if ($isallupper){			
-			$this->__invar = mb_strtoupper($this->__invar, $charset);
-		}else{
-			$this->__invar = mb_strtoupper(mb_substr($this->__invar, 0,1), $charset) . mb_strtoupper(mb_substr($this->__invar, 1), $charset);
-		}
-		return $this;
+	/** int 반환. 문자열의 길이를 셉니다. $charset 이 지정되지 않으면 기본값은 UTF-8 입니다. */
+	function length($charset='UTF-8'){
+		return  mb_strlen($this->__invar, $charset);		
 	}
 
 	/** fromString 반환
@@ -136,22 +97,6 @@ class FromString{
 	*/
 	function ltrim(){
 		$this->__invar = ltrim($this->__invar);
-		return $this;
-	}
-
-	/** fromString 반환.
-	rtrim 의 별칭입니다.
-	*/
-	function rtrim(){
-		$this->__invar = rtrim($this->__invar);
-		return $this;
-	}
-
-	/** fromString 반환.
-	rtrim 의 별칭입니다.
-	*/
-	function trim(){
-		$this->__invar = trim($this->__invar);
 		return $this;
 	}
 
@@ -177,6 +122,15 @@ class FromString{
 		return $this;
 	}
 
+
+	/** fromString 반환.
+	rtrim 의 별칭입니다.
+	*/
+	function rtrim(){
+		$this->__invar = rtrim($this->__invar);
+		return $this;
+	}
+
 	/** fromString 반환. str_shuffle과 같은 기능을 하지만 유니코드 확장을 위해서 구현은 다릅니다. 
 	소스코드는 http://php.net/manual/en/function.str-shuffle.php#107656 를 참조했습니다.
 	*/
@@ -188,12 +142,59 @@ class FromString{
 		return $this;
 	}
 
+	/** fromArray 반환. 문자열을 $delimiter로 나눌 때 사용합니다. */
+	public function split($delimiter, $limit=null){
+		$splitresult = null;
+		if ($limit == null){
+			$splitresult = explode($delimiter, $this->__invar);			
+		}else{
+			$splitresult = explode($delimiter, $this->__invar, $limit);			
+		}
+
+		return $this->self->fromArray($splitresult);
+	}
+
+	/** boolean 반환. 문자열이 $needle 로 시작하는 지 검사합니다. */
+	public function startsWith($needle)
+	{
+		return $needle === "" || strpos($this->__invar, $needle) === 0;		
+	}	
+
 	/** fromArray 반환.  str_split 의 별칭입니다. 각 문자열을 분해합니다. 
 	$split_length 가 입력되면 하나의 블럭당 $split_length 만큼의 글자가 할당됩니다.
 	  */
 	function toCharArray($split_length = 1){
 		$ret = str_split($this->__invar, $split_length);
 		return $this->self->fromArray($ret);
+	}
+
+	/** string 반환.  fromString 개체를 string 으로 변경합니다. */
+	public function toString(){
+		return $this->__invar;
+	}
+	
+
+	/** fromString 반환.
+	rtrim 의 별칭입니다.
+	*/
+	function trim(){
+		$this->__invar = trim($this->__invar);
+		return $this;
+	}
+
+
+	/** fromString 반환
+	ucfirst, strtoupper 의 별칭입니다. 	
+	$isallupper 가 true이면  믄자열 전체를 대문자로 변경합니다. 
+	$isallupper 가 false  믄자열의 첫번째만 대문자로 변경합니다. 
+	*/
+	function upper($isallupper=true, $charset='UTF-8'){
+		if ($isallupper){			
+			$this->__invar = mb_strtoupper($this->__invar, $charset);
+		}else{
+			$this->__invar = mb_strtoupper(mb_substr($this->__invar, 0,1), $charset) . mb_strtoupper(mb_substr($this->__invar, 1), $charset);
+		}
+		return $this;
 	}
 
 
