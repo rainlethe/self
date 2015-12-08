@@ -36,7 +36,7 @@ class FromArray{
 	public  function out(){		
 		var_dump($this->__invar);
 		return $this;
-	}
+	} 
 
 	// array_change_key_case
 	public function upperKey(){
