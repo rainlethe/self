@@ -244,8 +244,6 @@ class FromString{
 		return $this;
 	}
 
-	
-
 	/* sha1 */
 	function sha1($raw_output=false){
 		$this->__invar = sha1($this->__invar, $raw_output);
@@ -279,7 +277,7 @@ class FromString{
 	public function startsWith($needle)
 	{
 		return $needle === "" || mb_strpos($this->__invar, $needle) === 0;		
-	}	
+	}
 
 	
 

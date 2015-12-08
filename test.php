@@ -27,6 +27,9 @@ include_once('self.php');
 // $self->from('<p>테스트 문단.</p><!-- 주석 --> <a href="#fragment">다른 텍스트</a>')->htmlStrip()->out();
 //$self->from('<p>테스트 문단.</p><!-- 주석 --> <a href="#fragment">다른 텍스트</a>')->htmlStrip("<p>")->out();
 
-$self->from("a나bc가 d")->reverse()->out();
+// $self->from("a나bc가 d")->reverse()->out();
+
+$arr = array(1,2,3,4,5);
+
 
 ?>
