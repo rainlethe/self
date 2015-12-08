@@ -23,21 +23,44 @@ class FromArray{
 		return $this;
 	}
 
-	/* array_combine */
+	/* array_combine, array_fill_keys */
 	public function combineKeys($values){
-		$this->__invar = array_combine($this->__invar, $values);
+		if (is_string($values)){
+			$this->__invar = array_fill_keys($this->__invar, $values);
+		}
+		else if (is_array($values)){
+			$this->__invar = array_combine($this->__invar, $values);	
+		}
+		else if (get_class($values) == "FromString"){
+			$this->__invar = array_fill_keys($this->__invar, $values->toString());	
+		}
+		else if (get_class($values) == "FromArray"){
+			$this->__invar = array_combine($this->__invar, $values->toArray());	
+		}
+		
 		return $this;	
 	}
 
 	/* array_combine */
 	public function combineValues($keys){
-		$this->__invar = array_combine($values, $this->__invar);
+		if (is_array($keys)){
+			$this->__invar = array_combine($keys, $this->__invar);	
+		}		
+		else if (get_class($keys) == "FromArray"){
+			$this->__invar = array_combine($keys->toString(), $this->__invar);	
+		}
 		return $this;	
 	}
 
 	/* array_count_values */
 	public function countValues(){
 		$this->__invar = array_count_values($this->__invar);
+		return $this;
+	}
+
+	/* array_chunk */
+	public function chunk($size, $holdkey=false){
+		$this->__invar = array_chunk($this->__invar, $size, $holdkey);
 		return $this;
 	}
 
@@ -65,12 +88,35 @@ class FromArray{
 	/* array_diff */
 	public function diffValue($diffArray){
 		$this->__invar = array_diff_key($this->__invar, $diffArray);
+		return $this;
 	}
 
-	/* array_chunk */
-	public function chunk($size, $holdkey=false){
-		$this->__invar = array_chunk($this->__invar, $size, $holdkey);
+	/* array_fill */
+	public function fillValues($startIdx, $num, $value){
+		$this->__invar = array_fill($startIdx, $num, $value);
 		return $this;
+
+	}
+
+	/* array_filter(string). 혹은 직접 구현. */
+	public function filter($func = null){
+		if ($func == null){
+			$this->__invar = array_filter($this->__invar);	
+		}else if (is_string($func)){
+			$this->__invar = array_filter($this->__invar, $func);	
+		}else if (is_callable($func)){
+			$ret = array();
+			foreach($this->__invar as $key=>$val){
+				if ($func($key, $val)){
+					$ret[$key] = $val;
+				}
+			}
+
+			$this->__invar = $ret;
+		}
+
+		return $this;
+		
 	}
 
 	/** fromString 반환. 배열을 $glue로 이어붙입니다. fromArray(array(1,2,3,4))->join() 은 1234. fromArray(array(1,2,3,4))->join(',') => 1,2,3,4 가 출력됩니다. */
@@ -89,6 +135,10 @@ class FromArray{
 		var_dump($this->__invar);
 		return $this;
 	} 
+
+	public function toArray(){
+		return $this->__invar;
+	}
 
 	// array_change_key_case
 	public function upperKey(){

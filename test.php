@@ -31,16 +31,26 @@ include_once('self.php');
 
 // $arr = array(1,2,3,4,5);
 
-function key_compare_func($a, $b)
-{	
-    if ($a === $b) {
-        return 0;
-    }
-    return ($a > $b)? 1:-1;
+/*
+function odd($var)
+{
+    return ($var & 1);
 }
 
-$array1 = array("a" => "green", "b" => "brown", "c" => "blue", "red");
-$array2 = array("a" => "green", "yellow", "red");
-$result = array_diff_uassoc($array1, $array2, "key_compare_func");
-print_r($result);
+function even($var) {
+    return (!($var & 1));
+}
+
+$array1 = array("a"=>1, "b"=>2, "c"=>3, "d"=>4, "e"=>5);
+$array2 = array(6, 7, 8, 9, 10, 11, 12);
+
+print_r(array_filter($array1, "odd"));
+$self->from($array1)->filter("odd")->out();
+$self->from($array1)->filter(function($k,$v){
+	return ($v & 1);
+})->out();
+// echo "짝수:\n";
+// print_r(array_filter($array2, "even"));
+
+*/
 ?>
