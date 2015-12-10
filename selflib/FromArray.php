@@ -1,9 +1,38 @@
 <?php 
-class FromArray{
-	public $__invar = "";
+class FromArray implements Iterator{
+	public $__invar = array();	
 
-	public function __construct($var){
-		$this->__invar = $var;
+	// Iterator 인터페이스 구현
+	function rewind() {
+		$v = reset($this->__invar);		
+		return $v;
+        
+    }
+
+    function current() {    	
+    	$v = current($this->__invar);
+    	return $this->self->from($v);    	        
+    }
+
+    function key() {
+    	
+    	$v = key($this->__invar);
+    	return $v;    	        
+    }
+
+    function next() {        
+        $v = next($this->__invar);
+    	return $this->self->from($v);
+    }
+
+    function valid() {  
+    	$v = key($this->__invar) !== null;    	
+    	return $v;
+    }
+
+
+	public function __construct($var){		
+		$this->__invar = $var;		
 	}
 
 	/** fromArray 반환. 한번에 여러 element 입력 가능.  */
@@ -13,6 +42,17 @@ class FromArray{
 			array_push($this->__invar, $arg);	
 		}
 
+		return $this;
+	}
+
+	public function addDict($key, $val){
+		array_push($this->__invar, array($key=>$val));
+		return $this;
+	}
+
+	public function addTuple(){
+		$args = func_get_args();
+		array_push($this->__invar, $args);
 		return $this;
 	}
 	
@@ -50,6 +90,10 @@ class FromArray{
 			$this->__invar = array_combine($keys->toString(), $this->__invar);	
 		}
 		return $this;	
+	}
+
+	public function count(){
+		return count($this->__invar);
 	}
 
 	/* array_count_values */
@@ -114,9 +158,35 @@ class FromArray{
 
 			$this->__invar = $ret;
 		}
+		return $this;		
+	}
 
+	/* array_flip 키를 값으로. 값을 키로 변경. */
+	public function flip(){
+		$this->__invar = array_flip($this->__invar);
 		return $this;
-		
+	}
+
+	public function get($key1, $key2 = null, $defaultValue = ''){
+		if (isset($this->__invar[$key1]) == false){
+			return $defaultValue;
+		}
+
+		if ($key2 == null){ // key1 통채로 반환.			
+			if (isset($this->__invar[$key1])){
+				return $this->__invar[$key1];
+			}else{
+				return $defaultValue;
+			}
+		}else{
+			$v = $this->__invar[$key1];
+
+			if (isset($v[$key2])){
+				return $v[$key2];
+			}else{
+				return $defaultValue;
+			}
+		}
 	}
 
 	/** fromString 반환. 배열을 $glue로 이어붙입니다. fromArray(array(1,2,3,4))->join() 은 1234. fromArray(array(1,2,3,4))->join(',') => 1,2,3,4 가 출력됩니다. */

@@ -54,7 +54,9 @@ class SelfCls{
 			}
 		}
 
-		throw new Exception('cannot from any type of settings.');
+		// throw new Exception('cannot from any type of settings.');
+		// 아무것도 못할 경우 그냥 원본 객체를 돌림.
+		return $mixvar;
 	}
 }
 

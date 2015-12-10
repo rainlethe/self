@@ -1,8 +1,6 @@
 <?php
 include_once('self.php');
 
-
-
 // $self->fromString("a b c 가 나 다 ")->toCharArray()->out();
 // $self->fromNumber(1234.56)->numberFormat()->out();
 // $self->fromString("first=value&arr[]=foo+bar&arr[]=baz")->urlToArray()->out();
@@ -53,4 +51,12 @@ $self->from($array1)->filter(function($k,$v){
 // print_r(array_filter($array2, "even"));
 
 */
+//var_dump($self->mysql());
+// var_dump($self->mysql()->select('reportwrite'));
+//var_dump($self->mysql()->getColumnList('wp1_posts'));
+//var_dump($self->mysql());
+
+$a = array(1,2,3,4);
+var_dump(isset($a[5]));
+
 ?>

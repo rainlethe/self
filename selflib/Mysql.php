@@ -1,20 +1,23 @@
 <?php 
 class Mysql {
-	function str_startsWith($haystack, $needle)
+	private function str_startsWith($haystack, $needle)
 	{
-		return $needle === "" || strpos($haystack, $needle) === 0;
+		return $this->self->from($haystack)->startsWith($needle);
+		//return $needle === "" || strpos($haystack, $needle) === 0;
 	}
 
 	// 문자열 끝
-	function str_endsWith($haystack, $needle)
+	private function str_endsWith($haystack, $needle)
 	{
-		return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
+		return $this->self->from($haystack)->endsWith($needle);
+		//return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
 	}
 
 	// 문자열 포함
-	function str_contains($haystack, $needle)
+	private function str_contains($haystack, $needle)
 	{
-		return strrpos($haystack, $needle) !== false;
+		return $this->self->from($haystack)->contains($needle);
+		//return strrpos($haystack, $needle) !== false;
 	}
 
 	var $_host = '';
@@ -22,27 +25,34 @@ class Mysql {
 	var $_user = '';
 	var $_pass = '';
 
-	var $dbprefix = '';
+	var $_dbPrefix = '';
 	var $G_DEBUG = true;
-
 	var $_dbh = null;
 
-	public function __construct($host='',$dbname='', $user='',$pass='')
+	// http://php.net/manual/kr/pdostatement.fetch.php
+	var $_pdo_fetch = PDO::FETCH_ASSOC;
+
+
+	public function __construct($connname='localhost')
 	{
+		include('MysqlConfig.php');
+		$this->setConnectionInfo($mysqlconfig[$connname]['host'], $mysqlconfig[$connname]['dbname'], $mysqlconfig[$connname]['user'],$mysqlconfig[$connname]['pass'],$mysqlconfig[$connname]['dbprefix']);
+	}
+
+	public function setConnectionInfo($host='',$dbname='', $user='',$pass='', $dbPrefix = ''){
 		$this->_host = $host;
 		$this->_dbname = $dbname;
 		$this->_user = $user;
-		$this->_pass = $pass;		
+		$this->_pass = $pass;
+		$this->_dbPrefix = $dbPrefix;
 	}
 
 	private function open_dbhandler()
 	{
 		try
 		{
-
 			$this->_dbh = new PDO("mysql:host=" . $this->_host . ";dbname=" . $this->_dbname, $this->_user, $this->_pass, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'"));
 			return true;
-
 		}catch(PDOException $e)
 		{
 			//echo $e;
@@ -63,8 +73,12 @@ class Mysql {
 		}
 	}
 
-	public function query($query, $arrArgs, $isSelect=false)
-	{
+	public function query($query, $arrArgs, $isSelect=false, $pdo_fetch = null)
+	{	
+		if ($pdo_fetch != null){
+			$this->_pdo_fetch = $pdo_fetch;
+		}
+
 		if ($this->open_dbhandler() == false){return null;}
 
 		$stmt = null;
@@ -77,287 +91,295 @@ class Mysql {
 			$stmt = $this->_dbh->prepare($query);
 		}
 
-		for ($i=0;$i<count( $arrArgs); $i++)
+		for ($i=0;$i<count($arrArgs); $i++)
 		{
-		$stmt->bindParam($i+1, $arrArgs[$i]);
+			$stmt->bindParam($i+1, $arrArgs[$i]);
 		}
 
 		$stmt->execute();
 
 		if ($isSelect)
 		{
-		$result = array();
+			$result = array();
+			while($row = $stmt->fetch($this->_pdo_fetch, PDO::FETCH_ORI_NEXT))
+			{					
+				array_push($result, $row);
+			}
 
-		while($row = $stmt->fetch(PDO::FETCH_BOTH, PDO::FETCH_ORI_NEXT))
-		{
-		array_push($result, $row);
-		}
+			$result = $this->self->from($result);
 		}
 		else
 		{
-		$result = true;
+			$result = true;
 		}
 
 		$stmt = null;
 
-			$this->close_dbhandler();
+		$this->close_dbhandler();
+		return $result;
+	}
 
-			return $result;
-}
+	public function createTable($tablename, $columns)
+	{
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
 
-public function createtable($tablename, $columns)
-{
-$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-
-$primaryKey = $tablename . "_id";
-$sql = "CREATE TABLE IF NOT EXISTS `$tablename` (";
+		$primaryKey = $tablename . "_id";
+		$sql = "CREATE TABLE IF NOT EXISTS `$tablename` (";
 		$sql .= "`$primaryKey` bigint(20) unsigned NOT NULL AUTO_INCREMENT,";
 		foreach($columns as $col)
 		{
-		if ($this->str_endsWith($col, '_id'))
-		{
-		$sql .= " `$col` bigint(20) NULL,";
-}
-else
-{
-	$sql .= " `$col` text CHARACTER SET utf8 NULL,";
-}
+			if ($this->str_endsWith($col, '_id'))
+			{
+				$sql .= " `$col` bigint(20) NULL,";
+			}
+			else
+			{
+				$sql .= " `$col` text CHARACTER SET utf8 NULL,";
+			}
+		}
 
-}
+		$sql .= "PRIMARY KEY (`$primaryKey`), ";
+		$sql .= "UNIQUE KEY `$primaryKey` (`$primaryKey`) ";
+		$sql .= ") ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+		
+		return $this->query($sql, array());
+	}
 
-$sql .= "PRIMARY KEY (`$primaryKey`), ";
-$sql .= "UNIQUE KEY `$primaryKey` (`$primaryKey`) ";
-$sql .= ") ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
-
-//echo $sql;
-return $this->query($sql, array());
-
-
-	/*
-	`test_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-	`test_value` text CHARACTER SET utf8 NULL,
-	PRIMARY KEY (`test_id`),
-	UNIQUE KEY `test_id` (`test_id`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8_general_ci AUTO_INCREMENT=1 ;
-	*/
-}
-
-public function addcolumn($tablename, $columns)
+	public function addColumn($tablename, $columns)
     {
-        $tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-foreach($columns as $col)
-{
-if ($this->str_endsWith($col, '_id'))
-{
-$sql = "ALTER TABLE `$tablename` ADD `$col` bigint(20) NULL ;";
-}
-else
-{
-$sql = "ALTER TABLE `$tablename` ADD `$col` TEXT NULL ;";
-}
-
-
-$this->query($sql, array());
-}
-
-return true;
-}
-
-public function exist_table($tablename)
-{
-$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-
-$sql = "SHOW TABLES LIKE '$tablename'";
-$result = $this->query($sql, array(), true);
-if ($result == null){return false;}
-if (count($result) === 0)
-	{
-		return false;
-}
-else
-{
-return true;
-}
-}
-
-		public function createschema($tablename, $columns)
+        $tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+		foreach($columns as $col)
 		{
-		$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
+			if ($this->str_endsWith($col, '_id'))
+			{
+				$sql = "ALTER TABLE `$tablename` ADD `$col` bigint(20) NULL ;";
+			}
+			else
+			{
+				$sql = "ALTER TABLE `$tablename` ADD `$col` TEXT NULL ;";
+			}
+			$this->query($sql, array());
+		}
+		return true;
+	}
 
-		$is_exist_table =  $this->exist_table($tablename);
-		if ($is_exist_table)
+	public function isExistTable($tablename)
+	{
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+
+		$sql = "SHOW TABLES LIKE '$tablename'";
+		$result = $this->query($sql, array(), true);
+		if ($result == null){return false;}
+		if (count($result) === 0)
 		{
-		return $this->addcolumn($tablename, $columns);
-}
-else
-{
-return $this->createtable($tablename, $columns);
-}
-}
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
 
-public function select($tablename, $condstr='', $condArr=array(), $orderby = '')
-{
-$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-
-$query = " select * from $tablename ";
-
-if ($condstr != '')
+	public function createSchema($tablename, $columns)
 	{
-		$query = $query . " where $condstr";
-}
-if ($orderby != ''){
-$query = $query . " order by " . $orderby;
-}
-return $this->query($query, $condArr, true);
-}
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
 
-public function simpleselect($tablename, $pk_value)
-{
-$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-return $this->select($tablename, $tablename . "_id = ?", array($pk_value));
-}
+		$is_isExistTable =  $this->isExistTable($tablename);
+		if ($is_isExistTable)
+		{
+			return $this->addColumn($tablename, $columns);
+		}
+		else
+		{
+			return $this->createTable($tablename, $columns);
+		}
+	}
 
-public function simpleselect2($tablename, $pk_key, $pk_value){
-$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-return $this->select($tablename, $pk_key . "= ?", array($pk_value));
-}
-
-private function getjustcolumns($arrkeyvalue)
-{
-$justcols = array();
-foreach($arrkeyvalue as $key=>$value)
-{
-array_push($justcols, $key);
-}
-return $justcols;
-}
-
-function addnotcontaincol($tablename, $arrkeyvalue)
-{
-if ($this->G_DEBUG)
-{
-$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-
-$justcols = $this->getjustcolumns($arrkeyvalue);
-$this->createschema($tablename, $justcols);
-}
-}
-
-public function insert($tablename, $arrkeyvalue)
-{
-		$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-
-$this->addnotcontaincol($tablename, $arrkeyvalue);
-
-$keys = '';
-$valueq = '';
-$values = array();
-foreach($arrkeyvalue as $key=>$value)
-{
-if ($keys != '')
-{
-$keys = $keys . ",";
-}
-if ($valueq != '')
-{
-$valueq = $valueq . ",";
-}
-
-$keys = $keys . $key;
-$valueq = $valueq . "?";
-
-array_push($values, $value);
-}
-
-$query = "insert into $tablename ($keys) values ($valueq)";
-return $this->query($query, $values);
-
-}
-
-public function update($tablename, $arrkeyvalue, $condstr, $condArr)
+	public function select($tablename, $condstr='', $condArr=array(), $orderby = '', $pdo_fetch=null)
 	{
-	$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+		$query = " select * from $tablename ";
 
-		$this->addnotcontaincol($tablename, $arrkeyvalue);
+		if ($condstr != '')
+		{
+			$query = $query . " where $condstr";
+		}
+		if ($orderby != ''){
+			$query = $query . " order by " . $orderby;
+		}
 
+		if ($pdo_fetch != null){
+			$this->_pdo_fetch = $pdo_fetch;
+		}
+
+		return $this->query($query, $condArr, true);
+	}
+
+	public function selectByPkValue($tablename, $pk_value, $pdo_fetch = null)
+	{
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+
+		if ($pdo_fetch != null){
+			$this->_pdo_fetch = $pdo_fetch;
+		}
+
+		return $this->select($tablename, $tablename . "_id = ?", array($pk_value));
+	}
+
+	public function selectByPkKeyValue($tablename, $pk_key, $pk_value ,$pdo_fetch = null){
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+		if ($pdo_fetch != null){
+			$this->_pdo_fetch = $pdo_fetch;
+		}
+		return $this->select($tablename, $pk_key . "= ?", array($pk_value));
+	}
+
+	private function getJustColumns($arrkeyvalue)
+	{
+		$justcols = array();
+		foreach($arrkeyvalue as $key=>$value)
+		{
+			array_push($justcols, $key);
+		}
+		return $justcols;
+	}
+
+	public function addNotContainsCol($tablename, $arrkeyvalue)
+	{
+		if ($this->G_DEBUG)
+		{
+			$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+			$justcols = $this->getJustColumns($arrkeyvalue);
+			$this->createSchema($tablename, $justcols);
+		}
+	}
+
+	public function insert($tablename, $arrkeyvalue)
+	{
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+		$this->addNotContainsCol($tablename, $arrkeyvalue);
+
+		$keys = '';
+		$valueq = '';
+		$values = array();
+		foreach($arrkeyvalue as $key=>$value)
+		{
+			if ($keys != '')
+			{
+			$keys = $keys . ",";
+			}
+			if ($valueq != '')
+			{
+			$valueq = $valueq . ",";
+			}
+
+			$keys = $keys . $key;
+			$valueq = $valueq . "?";
+
+			array_push($values, $value);
+		}
+
+		$query = "insert into $tablename ($keys) values ($valueq)";
+		return $this->query($query, $values);
+	}
+
+	public function update($tablename, $arrkeyvalue, $condstr, $condArr)
+	{
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
+		$this->addNotContainsCol($tablename, $arrkeyvalue);
 		$query = "update $tablename set ";
 		$updatebody = '';
-
 		$arrQ = array();
 		foreach($arrkeyvalue as $key=>$value)
 		{
-		if ($updatebody != '')
-		{
-		$updatebody = $updatebody . ",";
+			if ($updatebody != '')
+			{
+				$updatebody = $updatebody . ",";
+			}
+			$updatebody = $updatebody . $key . ' = ?';
+			array_push($arrQ, $value);
 		}
-		$updatebody = $updatebody . $key . ' = ?';
-		array_push($arrQ, $value);
+
+		$query = $query . ' ' . $updatebody . ' where ' . $condstr;
+
+		foreach($condArr as $ca)
+		{
+			array_push($arrQ, $ca);
+		}
+		return $this->query($query, $arrQ);
 	}
 
-	$query = $query . ' ' . $updatebody . ' where ' . $condstr;
-
-	foreach($condArr as $ca)
+	public function insertOrUpdate($tablename, $arrkeyvalue, $condstr, $condArr)
 	{
-		array_push($arrQ, $ca);
-	}
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
 
+		$this->addNotContainsCol($tablename, $arrkeyvalue);
 
-	return $this->query($query, $arrQ);
-	}
+		$select = $this->select($tablename, $condstr, $condArr);
+		$result = '';
 
-	public function insert_or_update($tablename, $arrkeyvalue, $condstr, $condArr)
-	{
-	$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-
-	$this->addnotcontaincol($tablename, $arrkeyvalue);
-
-	$select = $this->select($tablename, $condstr, $condArr);
-	$result = '';
-
-	if ($select != null && count($select) > 0 )
-	{
+		if ($select != null && count($select) > 0 )
+		{
 			// update
 			$result = $this->update($tablename, $arrkeyvalue, $condstr, $condArr);
-	}
-	else
-			{
+		}
+		else
+		{
 			// insert
 			$result = $this->insert($tablename, $arrkeyvalue);
-	}
-	return $result;
+		}
+		return $result;
 	}
 
 
 
 	public function delete($tablename, $condstr, $arrcond)
 	{
-	$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
-
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
 		$query = " delete from $tablename where " . $condstr;
 		return $this->query($query, $arrcond);
 	}
 
-	public function get_cond_id($tablename, $condstr, $arrcond)
+	public function getCondId($tablename, $condstr, $arrcond)
 	{
-	$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
 
-	$query = " select " . $tablename . "_id" . " from $tablename where " .$condstr;
+		$query = " select " . $tablename . "_id" . " from $tablename where " .$condstr;
 		$result = $this->query($query, $arrcond, true);
-			if ($result == null){return -1;}
-					if (count($result) > 0){return $result[0][0];}
-					return -1;
+		if ($result == null){return -1;}
+		if ($result->count() > 0){return $result->get(0,0);}
+		return -1;
 	}
 
-	public function get_max_id($tablename)
+	public function getMaxId($tablename , $pkname = null)
 	{
-	$tablename = $this->dbprefix !== '' && $this->str_startsWith($tablename,$this->dbprefix) === false ? $this->dbprefix . $tablename : $tablename;
+		$tablename = $this->_dbPrefix !== '' && $this->str_startsWith($tablename,$this->_dbPrefix) === false ? $this->_dbPrefix . $tablename : $tablename;
 
-		$query = " select max(" . $tablename . "_id) as tid" . " from $tablename ";
+		if ($pkname == null){
+			$pkname = $tablename . "_id";
+
+		}
+
+		$query = " select max($pkname) as tid" . " from $tablename ";
 		$result = $this->query($query, array(), true);
 		if ($result == null){return -1;}
-		if (count($result) > 0){return $result[0][0];}
-			return -1;
-		}
-		}
+		if ($result->count() > 0){return $result->get(0,'tid');}
+		
+		return -1;
+	}
+
+	public function getTableList(){
+		$query = "show tables";		
+		$this->_pdo_fetch = PDO::FETCH_NUM;
+		
+		return $this->query($query, array(),true);
+	}
+
+	public function GetColumnList($tablename){
+		$query = "show columns from $tablename";
+		
+		return $this->query($query, array(),true);
+	}
+}
 
 ?>
